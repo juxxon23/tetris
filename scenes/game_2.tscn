@@ -1,0 +1,50 @@
+[gd_scene load_steps=7 format=4 uid="uid://b1ioxbuuhgwgp"]
+
+[ext_resource type="Script" uid="uid://do1mfspskw2su" path="res://src/using_tile_map_layer.gd" id="1_r11to"]
+[ext_resource type="Texture2D" uid="uid://cusivu8iym7kt" path="res://assets/tetrominoes.png" id="1_vttgw"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_r11to"]
+texture = ExtResource("1_vttgw")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_1oiof"]
+tile_size = Vector2i(32, 32)
+sources/0 = SubResource("TileSetAtlasSource_r11to")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1oiof"]
+texture = ExtResource("1_vttgw")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_wgl31"]
+tile_size = Vector2i(32, 32)
+sources/1 = SubResource("TileSetAtlasSource_1oiof")
+
+[node name="Game2" type="Node2D"]
+script = ExtResource("1_r11to")
+
+[node name="Board" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+tile_map_data = PackedByteArray("AAAAAAAAAAAHAAAAAAAAAAEAAAAHAAAAAAAAAAIAAAAHAAAAAAAAAAMAAAAHAAAAAAAAAAQAAAAHAAAAAAAAAAUAAAAHAAAAAAAAAAYAAAAHAAAAAAAAAAcAAAAHAAAAAAAAAAgAAAAHAAAAAAAAAAkAAAAHAAAAAAAAAAoAAAAHAAAAAAAAAAsAAAAHAAAAAAAAAAwAAAAHAAAAAAAAAA0AAAAHAAAAAAAAAA4AAAAHAAAAAAAAAA8AAAAHAAAAAAAAABAAAAAHAAAAAAAAABEAAAAHAAAAAAAAABIAAAAHAAAAAAAAABMAAAAHAAAAAAAAABQAAAAHAAAAAAAAABUAAAAHAAAAAAAAABYAAAAHAAAAAAABAAAAAAAHAAAAAAABABYAAAAHAAAAAAACAAAAAAAHAAAAAAACABYAAAAHAAAAAAADAAAAAAAHAAAAAAADABYAAAAHAAAAAAAEAAAAAAAHAAAAAAAEABYAAAAHAAAAAAAFAAAAAAAHAAAAAAAFABYAAAAHAAAAAAAGAAAAAAAHAAAAAAAGABYAAAAHAAAAAAAHAAAAAAAHAAAAAAAHABYAAAAHAAAAAAAIAAAAAAAHAAAAAAAIABYAAAAHAAAAAAAJAAAAAAAHAAAAAAAJABYAAAAHAAAAAAAKAAAAAAAHAAAAAAAKABYAAAAHAAAAAAALAAAAAAAHAAAAAAALAAEAAAAHAAAAAAALAAIAAAAHAAAAAAALAAMAAAAHAAAAAAALAAQAAAAHAAAAAAALAAUAAAAHAAAAAAALAAYAAAAHAAAAAAALAAcAAAAHAAAAAAALAAgAAAAHAAAAAAALAAkAAAAHAAAAAAALAAoAAAAHAAAAAAALAAsAAAAHAAAAAAALAAwAAAAHAAAAAAALAA0AAAAHAAAAAAALAA4AAAAHAAAAAAALAA8AAAAHAAAAAAALABAAAAAHAAAAAAALABEAAAAHAAAAAAALABIAAAAHAAAAAAALABMAAAAHAAAAAAALABQAAAAHAAAAAAALABUAAAAHAAAAAAALABYAAAAHAAAAAAA=")
+tile_set = SubResource("TileSet_1oiof")
+rendering_quadrant_size = 32
+
+[node name="Active" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+tile_set = SubResource("TileSet_wgl31")
+rendering_quadrant_size = 32
