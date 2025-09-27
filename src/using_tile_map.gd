@@ -5,8 +5,12 @@ const COLS: int = 10
 const ROWS: int = 20
 
 # Movement vars
+const directions := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]
 const start_pos := Vector2i(5, 1)
+const steps_req: int = 50
+var steps: Array
 var cur_pos: Vector2i
+var speed: float
 
 # Game piece vars
 var piece_type
@@ -71,10 +75,27 @@ var shapes_full := shapes.duplicate()
 
 
 func _ready() -> void:
+	print("Using TileMap")
 	new_game()
+
+func _process(_delta: float) -> void:
+	if Input.is_action_pressed("ui_left"):
+		steps[0] += 10
+	if Input.is_action_pressed("ui_right"):
+		steps[1] += 10
+	if Input.is_action_pressed("ui_down"):
+		steps[2] += 10
+	
+	steps[2] += speed
+	for d in range(steps.size()):
+		if steps[d] > steps_req:
+			move_piece(directions[d])
+			steps[d] = 0
 
 
 func new_game() -> void:
+	speed = 1.0
+	steps = [0, 0, 0] # 0:left, 1:right, 2:down
 	piece_type = pick_piece()
 	piece_atlas = Vector2i(shapes_full.find(piece_type), 0)
 	create_piece()
@@ -90,6 +111,7 @@ func pick_piece():
 
 
 func create_piece():
+	steps = [0, 0, 0]
 	cur_pos = start_pos
 	active_piece = piece_type[rotation_index]
 	draw_piece(active_piece, cur_pos, piece_atlas)
@@ -98,3 +120,27 @@ func create_piece():
 func draw_piece(piece, pos, atlas) -> void:
 	for p in piece:
 		set_cell(active_layer, pos + p, tile_id, atlas)
+
+
+func clear_piece():
+	for p in active_piece:
+		erase_cell(active_layer, cur_pos + p)
+
+
+func move_piece(dir) -> void:
+	if can_move(dir):
+		clear_piece()
+		cur_pos += dir
+		draw_piece(active_piece, cur_pos, piece_atlas)
+
+
+func can_move(dir):
+	var cm = true
+	for p in active_piece:
+		if not is_free(p + cur_pos + dir):
+			cm = false
+	return cm
+
+
+func is_free(pos) -> bool:
+	return get_cell_source_id(board_layer, pos) == -1
