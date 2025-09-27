@@ -81,10 +81,12 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if Input.is_action_pressed("ui_left"):
 		steps[0] += 10
-	if Input.is_action_pressed("ui_right"):
+	elif Input.is_action_pressed("ui_right"):
 		steps[1] += 10
-	if Input.is_action_pressed("ui_down"):
+	elif Input.is_action_pressed("ui_down"):
 		steps[2] += 10
+	elif Input.is_action_just_pressed("rotate"):
+		rotate_piece()
 	
 	steps[2] += speed
 	for d in range(steps.size()):
@@ -134,12 +136,29 @@ func move_piece(dir) -> void:
 		draw_piece(active_piece, cur_pos, piece_atlas)
 
 
+func rotate_piece():
+	if can_rotate():
+		clear_piece()
+		rotation_index = (rotation_index + 1) % 4
+		active_piece = piece_type[rotation_index]
+		draw_piece(active_piece, cur_pos, piece_atlas)
+
+
 func can_move(dir):
 	var cm = true
 	for p in active_piece:
 		if not is_free(p + cur_pos + dir):
 			cm = false
 	return cm
+
+
+func can_rotate():
+	var cr = true
+	var temp_rotation_index = (rotation_index + 1) % 4
+	for p in piece_type[temp_rotation_index]:
+		if not is_free(p + cur_pos):
+			cr = false 
+	return cr
 
 
 func is_free(pos) -> bool:
