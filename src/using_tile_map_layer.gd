@@ -1,16 +1,26 @@
 extends Node2D
 
-# Grid vars
+# Grid cons
 const COLS: int = 10
 const ROWS: int = 20
 
-# Movement vars
+# Game cons
+const REWARD: int = 100
+
+# Movement cons
 const directions := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]
 const start_pos := Vector2i(5, 1)
 const steps_req: int = 50
+const ACCEL: float = 0.25
+
+# Movement vars
 var steps: Array
 var cur_pos: Vector2i
 var speed: float
+
+# Game vars
+var score: int
+var game_running: bool
 
 # Game piece vars
 var piece_type
@@ -19,6 +29,7 @@ var rotation_index: int = 0
 var active_piece: Array
 
 # Tilemap vars
+var board_tile_id: int = 0
 var active_tile_id: int = 1
 var piece_atlas: Vector2i
 var next_piece_atlas: Vector2i
@@ -72,35 +83,47 @@ var shapes_full := shapes.duplicate()
 # TileMapLayer vars
 @onready var board: TileMapLayer = %Board
 @onready var active: TileMapLayer = %Active
+@onready var hud: CanvasLayer = $HUD
 
 
 func _ready() -> void:
 	print("Using TileMapLayer")
 	new_game()
+	hud.get_node("StartButton").pressed.connect(new_game)
 
 
 func _process(_delta: float) -> void:
-	if Input.is_action_pressed("ui_left"):
-		steps[0] += 10
-	elif Input.is_action_pressed("ui_right"):
-		steps[1] += 10
-	elif Input.is_action_pressed("ui_down"):
-		steps[2] += 10
-	elif Input.is_action_just_pressed("rotate"):
-		rotate_piece()
-	
-	steps[2] += speed
-	for d in range(steps.size()):
-		if steps[d] > steps_req:
-			move_piece(directions[d])
-			steps[d] = 0
+	if game_running:
+		if Input.is_action_pressed("ui_left"):
+			steps[0] += 10
+		elif Input.is_action_pressed("ui_right"):
+			steps[1] += 10
+		elif Input.is_action_pressed("ui_down"):
+			steps[2] += 10
+		elif Input.is_action_just_pressed("rotate"):
+			rotate_piece()
+		
+		steps[2] += speed
+		for d in range(steps.size()):
+			if steps[d] > steps_req:
+				move_piece(directions[d])
+				steps[d] = 0
 
 
 func new_game() -> void:
+	score = 0
 	speed = 1.0
+	game_running = true
 	steps = [0, 0, 0] # 0:left, 1:right, 2:down
+	hud.get_node("GameOverLabel").hide()
+	hud.get_node("ScoreLabel").text = "SCORE: " + str(score)
+	clear_piece()
+	clear_board()
+	clear_panel()
 	piece_type = pick_piece()
 	piece_atlas = Vector2i(shapes_full.find(piece_type), 0)
+	next_piece_type = pick_piece()
+	next_piece_atlas = Vector2i(shapes_full.find(next_piece_type), 0)
 	create_piece()
 
 
@@ -118,6 +141,7 @@ func create_piece():
 	cur_pos = start_pos
 	active_piece = piece_type[rotation_index]
 	draw_piece(active_piece, cur_pos, piece_atlas)
+	draw_piece(next_piece_type[0], Vector2i(15, 6), next_piece_atlas)
 
 
 func draw_piece(piece, pos, atlas) -> void:
@@ -135,6 +159,17 @@ func move_piece(dir) -> void:
 		clear_piece()
 		cur_pos += dir
 		draw_piece(active_piece, cur_pos, piece_atlas)
+	else:
+		if dir == Vector2i.DOWN:
+			land_piece()
+			check_rows()
+			piece_type = next_piece_type
+			piece_atlas = next_piece_atlas
+			next_piece_type = pick_piece()
+			next_piece_atlas = Vector2i(shapes_full.find(next_piece_type), 0)
+			clear_panel()
+			create_piece()
+			check_game_over()
 
 
 func rotate_piece():
@@ -164,3 +199,56 @@ func can_rotate():
 
 func is_free(pos) -> bool:
 	return board.get_cell_source_id(pos) == -1
+
+
+func land_piece():
+	for p in active_piece:
+		active.erase_cell(cur_pos + p)
+		board.set_cell(cur_pos + p, board_tile_id, piece_atlas)
+
+
+func clear_panel():
+	for p in range(14, 19):
+		for q in range(5, 9):
+			active.erase_cell(Vector2i(p, q))
+
+
+func check_rows():
+	var row: int = ROWS
+	while row > 0:
+		var count = 0
+		for p in range(COLS):
+			if not is_free(Vector2i(p + 1, row)):
+				count += 1
+		if count == COLS:
+			shift_rows(row)
+			score += REWARD
+			hud.get_node("ScoreLabel").text = "SCORE: " + str(score)
+			speed += ACCEL
+		else:
+			row -= 1
+
+
+func shift_rows(row):
+	var atlas
+	for p in range(row, 1, -1):
+		for q in range(COLS):
+			atlas = board.get_cell_atlas_coords(Vector2i(q + 1, p - 1))
+			if atlas == Vector2i(-1, -1):
+				board.erase_cell(Vector2i(q + 1, p))
+			else:
+				board.set_cell(Vector2i(q + 1, p), board_tile_id, atlas)
+
+
+func clear_board():
+	for p in range(ROWS):
+		for q in range(COLS):
+			board.erase_cell(Vector2i(q + 1, p + 1))
+
+
+func check_game_over():
+	for p in active_piece:
+		if not is_free(p + cur_pos):
+			land_piece()
+			hud.get_node("GameOverLabel").show()
+			game_running = false
